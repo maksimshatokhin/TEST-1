@@ -1,0 +1,36 @@
+SELECT max(trannum) as tr FROM sj_tranz WHERE timebeg<=now()-interval'14 days';
+
+Ќефтепродƒмитрий, [05.07.16 12:41]
+это будет обрабатывать 14 дней
+
+Ќефтепродƒмитрий, [05.07.16 12:42]
+и потом select * from gj_articles where trannum>=691682
+  AND trannum NOT IN (select DISTINCT id_tranz from gj_log_d where id_tranz>=691682691682)
+
+Ќефтепродƒмитрий, [05.07.16 12:42]
+select * from gj_articles where trannum>=691682
+  AND trannum NOT IN (select DISTINCT id_tranz from gj_log_d where id_tranz>=691682)
+
+Ќефтепродƒмитрий, [05.07.16 12:42]
+где 691682 результат первого запроса
+
+Ќефтепродƒмитрий, [05.07.16 13:21]
+ѕоследний запрос
+
+Ќефтепродƒмитрий, [05.07.16 13:23]
+psql ubuk -c "select * from ..." > file.lst
+
+
+Ќефтепродƒмитрий, [06.07.16 09:01]
+psql ubuk -c "WITH shop AS (SELECT sf_get_cur_id_shop() as s),
+     conf AS (SELECT s.op_time FROM sd_conf_local as s, shop WHERE s.id_shop=shop.s AND id_local_conf_type=28 AND local_value='5.18.1'),
+     tr   AS (SELECT * FROM sj_tranz WHERE timebeg>=(SELECT op_time FROM conf) AND trantyp IN (1,2)),
+    notin AS (SELECT tr.* FROM tr
+                            LEFT JOIN gj_log_d g ON tr.id_shop=g.id_shop AND g.id_tranz=tr.trannum
+                     , sj_checks as c
+                   WHERE tr.id_shop=c.id_shop AND tr.trannum=c.trannum AND g.id_tranz IS NULL)
+SELECT shift, notin.trannum, trantyp,article, price, quant, discount, money FROM gj_articles as ar,notin WHERE ar.trannum=notin.trannum
+ORDER BY trannum;" > file.lst
+
+Ќефтепродƒмитрий, [06.07.16 09:01]
+тоже самое, только больше информации выводит и одной командой. —ам определ€ет с какого мамента смотреть
